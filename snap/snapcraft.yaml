@@ -1,0 +1,100 @@
+---
+# SPDX-License-Identifier: GPL-2.0
+# Copyright (C) 2022 Canonical Ltd
+
+name: spieed-lichee-rv-gadget
+version: 20-1
+summary: Sipeed Lichee RV gadget
+description: |
+  Support files for booting Sipeed Lichee RV gadget
+type: gadget
+base: core20
+assumes: [kernel-assets]
+architectures:
+  - build-on:
+      - amd64
+      - arm64
+      - riscv64
+    run-on: riscv64
+
+package-repositories:
+  - type: apt
+    ppa: snappy-dev/image
+
+confinement: strict
+grade: stable
+
+# Adapted from https://fedoraproject.org/wiki/Architectures/RISC-V/Allwinner
+
+parts:
+  u-boot:
+    after:
+      - opensbi
+    plugin: nil
+    source: https://github.com/IsaacJT/lichee-rv-u-boot.git
+    source-type: git
+    source-branch: d1-wip
+    source-depth: 1
+    build-environment:
+      - PATH: "/usr/lib/ccache:${PATH}"
+    override-build: |
+      make ARCH="riscv" CROSS_COMPILE="${SNAPCRAFT_ARCH_TRIPLET}-" lichee_rv_defconfig
+      make ARCH="riscv" CROSS_COMPILE="${SNAPCRAFT_ARCH_TRIPLET}-" -j$(nproc)
+      tools/mkenvimage -r -s 4096 -o ${SNAPCRAFT_PART_INSTALL}/boot.sel - < /dev/null
+      touch ${SNAPCRAFT_PART_INSTALL}/uboot.conf
+      tools/mkimage -T sunxi_toc1 -d ${SNAPCRAFT_PROJECT_DIR}/u-boot/toc1.cfg ${SNAPCRAFT_PART_INSTALL}/u-boot.toc1
+    build-packages:
+      - bc
+    prime:
+      - u-boot.toc1
+      - boot.sel
+      - uboot.conf
+  boot-scr:
+    plugin: nil
+    source: u-boot
+    override-build: |
+      mkimage -T script -C none -n 'Boot Script' -d boot.scr.in ${SNAPCRAFT_PART_INSTALL}/boot.scr
+    build-packages:
+      - sed
+      - u-boot-tools
+  opensbi:
+    plugin: make
+    source: https://github.com/IsaacJT/opensbi.git
+    source-type: git
+    source-branch: d1-wip
+    source-depth: 1
+    build-environment:
+      - PATH: "/usr/lib/ccache:${PATH}"
+      - FW_PIC: "y"
+      - BUILD_INFO: "y"
+      - PLATFORM: "generic"
+    make-parameters:
+      - CROSS_COMPILE="${SNAPCRAFT_ARCH_TRIPLET}-"
+    override-build: |
+      snapcraftctl build
+      cp ${SNAPCRAFT_PART_BUILD}/build/platform/generic/firmware/fw_dynamic.bin ${SNAPCRAFT_PART_INSTALL}/
+    prime:
+      - -fw_dynamic.bin
+  spl:
+    plugin: nil
+    source: https://github.com/IsaacJT/sun20i_d1_spl.git
+    source-type: git
+    source-branch: mainline
+    source-depth: 1
+    build-environment:
+      - PATH: "/usr/lib/ccache:${PATH}"
+    override-build: |
+      make CROSS_COMPILE="${SNAPCRAFT_ARCH_TRIPLET}-" p=sun20iw1p1 mmc
+      cp ${SNAPCRAFT_PART_BUILD}/nboot/boot0_sdcard_sun20iw1p1.bin ${SNAPCRAFT_PART_INSTALL}/
+  boot-misc:
+    plugin: dump
+    source: boot
+build-packages:
+  - build-essential
+  - ccache
+  - on amd64:
+    - gcc-riscv64-linux-gnu
+  - on arm64:
+    - gcc-riscv64-linux-gnu
+  - else:
+    - gcc
