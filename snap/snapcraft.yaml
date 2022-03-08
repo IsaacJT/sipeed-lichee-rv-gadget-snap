@@ -2,7 +2,7 @@
 # SPDX-License-Identifier: GPL-2.0
 # Copyright (C) 2022 Canonical Ltd
 
-name: spieed-lichee-rv-gadget
+name: sipeed-lichee-rv-gadget
 version: 20-1
 summary: Sipeed Lichee RV gadget
 description: |
