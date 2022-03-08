@@ -31,7 +31,7 @@ parts:
     after:
       - opensbi
     plugin: nil
-    source: https://github.com/IsaacJT/lichee-rv-u-boot.git
+    source: https://github.com/smaeul/u-boot.git
     source-type: git
     source-branch: d1-wip
     source-depth: 1
@@ -59,7 +59,7 @@ parts:
       - u-boot-tools
   opensbi:
     plugin: make
-    source: https://github.com/IsaacJT/opensbi.git
+    source: https://github.com/smaeul/opensbi.git
     source-type: git
     source-branch: d1-wip
     source-depth: 1
@@ -77,7 +77,7 @@ parts:
       - -fw_dynamic.bin
   spl:
     plugin: nil
-    source: https://github.com/IsaacJT/sun20i_d1_spl.git
+    source: https://github.com/smaeul/sun20i_d1_spl.git
     source-type: git
     source-branch: mainline
     source-depth: 1
@@ -86,6 +86,7 @@ parts:
     override-build: |
       make CROSS_COMPILE="${SNAPCRAFT_ARCH_TRIPLET}-" p=sun20iw1p1 mmc
       cp ${SNAPCRAFT_PART_BUILD}/nboot/boot0_sdcard_sun20iw1p1.bin ${SNAPCRAFT_PART_INSTALL}/
+  # These files were present on the reference image - no idea what they're needed for
   boot-misc:
     plugin: dump
     source: boot
