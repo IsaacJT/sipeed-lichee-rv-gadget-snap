@@ -28,4 +28,9 @@ jobs:
         run: sudo snap install snapcraft --classic 
       - name: Build snap
         run: snapcraft --enable-experimental-target-arch --target-arch=riscv64 --destructive-mode
+      - name: Archive snap
+        uses: actions/upload-artifact@v3
+        with:
+          name: sipeed-lichee-rv-gadget-snap
+          path: "*.snap"
 
