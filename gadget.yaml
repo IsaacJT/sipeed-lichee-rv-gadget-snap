@@ -1,5 +1,5 @@
 volumes:
-  spieed-lichee-rv:
+  sipeed-lichee-rv:
     schema: gpt
     bootloader: u-boot
     # Sizes copied from the manufacturer's reference image
