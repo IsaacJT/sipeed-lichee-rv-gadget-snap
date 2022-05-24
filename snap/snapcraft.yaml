@@ -1,12 +1,12 @@
 ---
 # SPDX-License-Identifier: GPL-2.0
-# Copyright (C) 2022 Canonical Ltd
+# Copyright (C) 2022 Isaac True
 
-name: sipeed-lichee-rv-gadget
+name: sipeed-lichee-gadget
 version: 20-1
-summary: Sipeed Lichee RV gadget
+summary: Sipeed Lichee gadget
 description: |
-  Support files for booting Sipeed Lichee RV gadget
+  Support files for booting the Sipeed Lichee
 type: gadget
 base: core20
 assumes: [kernel-assets]
@@ -17,10 +17,6 @@ architectures:
       - riscv64
     run-on: riscv64
 
-package-repositories:
-  - type: apt
-    ppa: snappy-dev/image
-
 confinement: strict
 grade: stable
 
@@ -28,12 +24,10 @@ grade: stable
 
 parts:
   u-boot:
-    after:
-      - opensbi
     plugin: nil
-    source: https://github.com/smaeul/u-boot.git
+    source: https://github.com/AlexGhiti/u-boot.git
     source-type: git
-    source-branch: d1-wip
+    source-branch: int/alex/debian_licheerv_22.04+git20220405.7446a472
     source-depth: 1
     build-environment:
       - PATH: "/usr/lib/ccache:${PATH}"
@@ -42,13 +36,34 @@ parts:
       make ARCH="riscv" CROSS_COMPILE="${SNAPCRAFT_ARCH_TRIPLET}-" -j$(nproc)
       tools/mkenvimage -r -s 4096 -o ${SNAPCRAFT_PART_INSTALL}/boot.sel - < /dev/null
       touch ${SNAPCRAFT_PART_INSTALL}/uboot.conf
-      tools/mkimage -T sunxi_toc1 -d ${SNAPCRAFT_PROJECT_DIR}/u-boot/toc1.cfg ${SNAPCRAFT_PART_INSTALL}/u-boot.toc1
+      cp u-boot.dtb u-boot.bin ${SNAPCRAFT_PART_INSTALL}/
     build-packages:
       - bc
     prime:
-      - u-boot.toc1
       - boot.sel
       - uboot.conf
+  boot-image:
+    after:
+      - u-boot
+      - opensbi
+    plugin: nil
+    override-build: |
+      cat > toc1.cfg << EOF
+      [opensbi]
+      file = ${SNAPCRAFT_PART_BUILD}/../../opensbi/install/fw_dynamic.bin
+      addr = 0x40000000
+      [dtb]
+      file = ${SNAPCRAFT_PART_BUILD}/../../u-boot/install/u-boot.dtb
+      addr = 0x44000000
+      [u-boot]
+      file = ${SNAPCRAFT_PART_BUILD}/../../u-boot/install/u-boot.bin
+      addr = 0x4a000000
+      EOF
+
+      ${SNAPCRAFT_PART_BUILD}/../../u-boot/build/tools/mkimage \
+        -T sunxi_toc1 -d toc1.cfg ${SNAPCRAFT_PART_INSTALL}/u-boot.toc1
+    prime:
+      - u-boot.toc1
   boot-scr:
     plugin: nil
     source: u-boot
@@ -90,12 +105,11 @@ parts:
   boot-misc:
     plugin: dump
     source: boot
+
 build-packages:
   - build-essential
   - ccache
-  - on amd64:
-    - gcc-riscv64-linux-gnu
-  - on arm64:
-    - gcc-riscv64-linux-gnu
-  - else:
+  - on riscv64:
     - gcc
+  - else:
+    - gcc-${SNAPCRAFT_ARCH_TRIPLET}
