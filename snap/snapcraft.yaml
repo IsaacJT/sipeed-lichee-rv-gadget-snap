@@ -3,13 +3,13 @@
 # Copyright (C) 2022 Isaac True
 
 name: sipeed-lichee-gadget
-version: 20-1
 summary: Sipeed Lichee gadget
 description: |
   Support files for booting the Sipeed Lichee
 type: gadget
 base: core20
 assumes: [kernel-assets]
+adopt-info: u-boot
 architectures:
   - build-on:
       - amd64
@@ -18,26 +18,27 @@ architectures:
     run-on: riscv64
 
 confinement: strict
-grade: stable
 
 # Adapted from https://fedoraproject.org/wiki/Architectures/RISC-V/Allwinner
 
 parts:
   u-boot:
     plugin: nil
-    source: https://github.com/AlexGhiti/u-boot.git
+    source: https://github.com/smaeul/u-boot.git
     source-type: git
-    source-branch: int/alex/debian_licheerv_22.04+git20220405.7446a472
+    source-branch: d1-wip
     source-depth: 1
     build-environment:
       - PATH: "/usr/lib/ccache:${PATH}"
     override-build: |
       make ARCH="riscv" CROSS_COMPILE="${SNAPCRAFT_ARCH_TRIPLET}-" lichee_rv_defconfig
-      echo CMD_GPT=y >> .config
       make ARCH="riscv" CROSS_COMPILE="${SNAPCRAFT_ARCH_TRIPLET}-" -j$(nproc)
       tools/mkenvimage -r -s 4096 -o ${SNAPCRAFT_PART_INSTALL}/boot.sel - < /dev/null
       touch ${SNAPCRAFT_PART_INSTALL}/uboot.conf
       cp u-boot.dtb u-boot.bin ${SNAPCRAFT_PART_INSTALL}/
+      VER="$(strings u-boot-dtb.bin | grep "U-Boot 20" | cut -d' ' -f2)"
+      snapcraftctl set-version "$VER"
+      snapcraftctl set-grade "devel"
     build-packages:
       - bc
     prime:
