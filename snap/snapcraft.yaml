@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: GPL-2.0
 # Copyright (C) 2022 Isaac True
 
-name: sipeed-lichee-gadget
-summary: Sipeed Lichee gadget
+name: sipeed-lichee-rv-gadget
+summary: Sipeed Lichee RV gadget
 description: |
   Support files for booting the Sipeed Lichee
 type: gadget
