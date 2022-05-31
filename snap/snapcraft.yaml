@@ -104,9 +104,6 @@ parts:
     override-build: |
       make CROSS_COMPILE="${SNAPCRAFT_ARCH_TRIPLET}-" p=sun20iw1p1 mmc
       cp ${SNAPCRAFT_PART_BUILD}/nboot/boot0_sdcard_sun20iw1p1.bin ${SNAPCRAFT_PART_INSTALL}/
-  cloud-init-conf:
-    plugin: dump
-    source: cloud-init
 
 build-packages:
   - build-essential

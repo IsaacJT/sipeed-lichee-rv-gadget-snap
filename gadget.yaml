@@ -27,8 +27,6 @@ volumes:
         content:
           - source: boot.scr
             target: /
-          - source: cloud.conf
-            target: /
       - name: ubuntu-boot
         role: system-boot
         filesystem: ext4
@@ -37,8 +35,6 @@ volumes:
         content:
           - source: boot.sel
             target: uboot/ubuntu/boot.sel
-          - source: cloud.conf
-            target: /
       - name: ubuntu-save
         role: system-save
         filesystem: ext4
