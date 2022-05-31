@@ -19,8 +19,6 @@ architectures:
 
 confinement: strict
 
-# Adapted from https://fedoraproject.org/wiki/Architectures/RISC-V/Allwinner
-
 parts:
   u-boot:
     plugin: nil
