@@ -10,12 +10,16 @@ volumes:
         size: 65536
         content:
           - image: boot0_sdcard_sun20iw1p1.bin
+        update:
+          edition: 1
       - name: toc1
         offset: 16793600
         type: bare
         size: 2M
         content:
           - image: u-boot.toc1
+        update:
+          edition: 1
       - name: ubuntu-seed
         role: system-seed
         filesystem: vfat
@@ -27,6 +31,10 @@ volumes:
         content:
           - source: boot.scr
             target: /
+          - source: overlays
+            target: /
+        update:
+          edition: 1
       - name: ubuntu-boot
         role: system-boot
         filesystem: ext4
