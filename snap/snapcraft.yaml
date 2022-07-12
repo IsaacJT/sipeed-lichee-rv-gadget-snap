@@ -41,6 +41,7 @@ parts:
       snapcraftctl set-grade "devel"
     build-packages:
       - bc
+      - bison
     prime:
       - boot.sel
       - uboot.conf
