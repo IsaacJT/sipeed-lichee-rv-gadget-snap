@@ -42,6 +42,10 @@ parts:
     build-packages:
       - bc
       - bison
+      - flex
+      - libpython3-dev
+      - libssl-dev
+      - swig
     prime:
       - boot.sel
       - uboot.conf
