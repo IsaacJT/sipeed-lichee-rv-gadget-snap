@@ -5,9 +5,9 @@
 name: sipeed-lichee-rv-gadget
 summary: Sipeed Lichee RV gadget
 description: |
-  Support files for booting the Sipeed Lichee
+  Support files for booting the Sipeed Lichee with Ubuntu Core 22
 type: gadget
-base: core20
+base: core22
 assumes: [kernel-assets]
 adopt-info: u-boot
 architectures:
@@ -15,7 +15,7 @@ architectures:
       - amd64
       - arm64
       - riscv64
-    run-on: riscv64
+    build-for: riscv64
 
 confinement: strict
 
@@ -29,16 +29,16 @@ parts:
     build-environment:
       - PATH: "/usr/lib/ccache:${PATH}"
     override-build: |
-      make ARCH="riscv" CROSS_COMPILE="${SNAPCRAFT_ARCH_TRIPLET}-" lichee_rv_defconfig
-      sed -i 's/CONFIG_DEFAULT_DEVICE_TREE="sun20i-d1-lichee-rv"/CONFIG_DEFAULT_DEVICE_TREE="sun20i-d1-lichee-rv-dock"/' ${SNAPCRAFT_PART_BUILD}/.config
-      sed -i 's/# CONFIG_OF_LIBFDT_OVERLAY is not set/CONFIG_OF_LIBFDT_OVERLAY=y/' ${SNAPCRAFT_PART_BUILD}/.config
-      make ARCH="riscv" CROSS_COMPILE="${SNAPCRAFT_ARCH_TRIPLET}-" -j$(nproc)
-      tools/mkenvimage -r -s 4096 -o ${SNAPCRAFT_PART_INSTALL}/boot.sel - < /dev/null
-      touch ${SNAPCRAFT_PART_INSTALL}/uboot.conf
-      cp u-boot.dtb u-boot.bin ${SNAPCRAFT_PART_INSTALL}/
+      make ARCH="riscv" CROSS_COMPILE="${CRAFT_ARCH_TRIPLET}-" lichee_rv_defconfig
+      sed -i 's/CONFIG_DEFAULT_DEVICE_TREE="sun20i-d1-lichee-rv"/CONFIG_DEFAULT_DEVICE_TREE="sun20i-d1-lichee-rv-dock"/' ${CRAFT_PART_BUILD}/.config
+      sed -i 's/# CONFIG_OF_LIBFDT_OVERLAY is not set/CONFIG_OF_LIBFDT_OVERLAY=y/' ${CRAFT_PART_BUILD}/.config
+      make ARCH="riscv" CROSS_COMPILE="${CRAFT_ARCH_TRIPLET}-" -j$(nproc)
+      tools/mkenvimage -r -s 4096 -o ${CRAFT_PART_INSTALL}/boot.sel - < /dev/null
+      touch ${CRAFT_PART_INSTALL}/uboot.conf
+      cp u-boot.dtb u-boot.bin ${CRAFT_PART_INSTALL}/
       VER="$(strings u-boot-dtb.bin | grep "U-Boot 20" | cut -d' ' -f2)"
-      snapcraftctl set-version "$VER"
-      snapcraftctl set-grade "devel"
+      craftctl set version="$VER"
+      craftctl set grade="devel"
     build-packages:
       - bc
       - bison
@@ -58,18 +58,18 @@ parts:
     override-build: |
       cat > toc1.cfg << EOF
       [opensbi]
-      file = ${SNAPCRAFT_PART_BUILD}/../../opensbi/install/fw_dynamic.bin
+      file = ${CRAFT_PART_BUILD}/../../opensbi/install/fw_dynamic.bin
       addr = 0x40000000
       [dtb]
-      file = ${SNAPCRAFT_PART_BUILD}/../../u-boot/install/u-boot.dtb
+      file = ${CRAFT_PART_BUILD}/../../u-boot/install/u-boot.dtb
       addr = 0x44000000
       [u-boot]
-      file = ${SNAPCRAFT_PART_BUILD}/../../u-boot/install/u-boot.bin
+      file = ${CRAFT_PART_BUILD}/../../u-boot/install/u-boot.bin
       addr = 0x4a000000
       EOF
 
-      ${SNAPCRAFT_PART_BUILD}/../../u-boot/build/tools/mkimage \
-        -T sunxi_toc1 -d toc1.cfg ${SNAPCRAFT_PART_INSTALL}/u-boot.toc1
+      ${CRAFT_PART_BUILD}/../../u-boot/build/tools/mkimage \
+        -T sunxi_toc1 -d toc1.cfg ${CRAFT_PART_INSTALL}/u-boot.toc1
     prime:
       - u-boot.toc1
 
@@ -77,7 +77,7 @@ parts:
     plugin: nil
     source: u-boot
     override-build: |
-      mkimage -A riscv -T script -C none -n 'Boot Script' -d boot.scr.in ${SNAPCRAFT_PART_INSTALL}/boot.scr
+      mkimage -A riscv -T script -C none -n 'Boot Script' -d boot.scr.in ${CRAFT_PART_INSTALL}/boot.scr
     build-packages:
       - sed
       - u-boot-tools
@@ -94,10 +94,10 @@ parts:
       - BUILD_INFO: "y"
       - PLATFORM: "generic"
     make-parameters:
-      - CROSS_COMPILE="${SNAPCRAFT_ARCH_TRIPLET}-"
+      - CROSS_COMPILE="${CRAFT_ARCH_TRIPLET}-"
     override-build: |
-      snapcraftctl build
-      cp ${SNAPCRAFT_PART_BUILD}/build/platform/generic/firmware/fw_dynamic.bin ${SNAPCRAFT_PART_INSTALL}/
+      craftctl default
+      cp ${CRAFT_PART_BUILD}/build/platform/generic/firmware/fw_dynamic.bin ${CRAFT_PART_INSTALL}/
     prime:
       - -fw_dynamic.bin
 
@@ -110,15 +110,15 @@ parts:
     build-environment:
       - PATH: "/usr/lib/ccache:${PATH}"
     override-build: |
-      make CROSS_COMPILE="${SNAPCRAFT_ARCH_TRIPLET}-" p=sun20iw1p1 mmc
-      cp ${SNAPCRAFT_PART_BUILD}/nboot/boot0_sdcard_sun20iw1p1.bin ${SNAPCRAFT_PART_INSTALL}/
+      make CROSS_COMPILE="${CRAFT_ARCH_TRIPLET}-" p=sun20iw1p1 mmc
+      cp ${CRAFT_PART_BUILD}/nboot/boot0_sdcard_sun20iw1p1.bin ${CRAFT_PART_INSTALL}/
 
   overlays:
     plugin: nil
     source: overlays
     override-build: |
-      for f in $(ls ${SNAPCRAFT_PART_SRC}/*.dts); do
-        dtc -@ -I dts -O dtb -o ${SNAPCRAFT_PART_INSTALL}/$(basename $f | cut -f1 -d.).dtbo $f
+      for f in $(ls ${CRAFT_PART_SRC}/*.dts); do
+        dtc -@ -I dts -O dtb -o ${CRAFT_PART_INSTALL}/$(basename $f | cut -f1 -d.).dtbo $f
       done
     organize:
       "*.dtbo": overlays/
@@ -131,4 +131,4 @@ build-packages:
   - on riscv64:
     - gcc
   - else:
-    - gcc-${SNAPCRAFT_ARCH_TRIPLET}
+    - gcc-${CRAFT_ARCH_TRIPLET}
