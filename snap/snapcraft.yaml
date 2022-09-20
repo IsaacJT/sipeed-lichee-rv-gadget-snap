@@ -18,60 +18,36 @@ architectures:
     build-for: riscv64
 
 confinement: strict
+compression: lzo
 
 parts:
   u-boot:
     plugin: nil
-    source: https://github.com/smaeul/u-boot.git
-    source-type: git
-    source-branch: d1-wip
-    source-depth: 1
-    build-environment:
-      - PATH: "/usr/lib/ccache:${PATH}"
-    override-build: |
-      make ARCH="riscv" CROSS_COMPILE="${CRAFT_ARCH_TRIPLET}-" lichee_rv_defconfig
-      sed -i 's/CONFIG_DEFAULT_DEVICE_TREE="sun20i-d1-lichee-rv"/CONFIG_DEFAULT_DEVICE_TREE="sun20i-d1-lichee-rv-dock"/' ${CRAFT_PART_BUILD}/.config
-      sed -i 's/# CONFIG_OF_LIBFDT_OVERLAY is not set/CONFIG_OF_LIBFDT_OVERLAY=y/' ${CRAFT_PART_BUILD}/.config
-      make ARCH="riscv" CROSS_COMPILE="${CRAFT_ARCH_TRIPLET}-" -j$(nproc)
-      tools/mkenvimage -r -s 4096 -o ${CRAFT_PART_INSTALL}/boot.sel - < /dev/null
-      touch ${CRAFT_PART_INSTALL}/uboot.conf
-      cp u-boot.dtb u-boot.bin ${CRAFT_PART_INSTALL}/
-      VER="$(strings u-boot-dtb.bin | grep "U-Boot 20" | cut -d' ' -f2)"
-      craftctl set version="$VER"
+    stage-packages:
+      - u-boot-nezha
+    organize:
+      usr/lib/u-boot/nezha/u-boot.toc1: u-boot.toc1
+    override-stage: |
+      craftctl default
+      VER=$(strings ${CRAFT_PART_INSTALL}/u-boot.toc1 | grep -E "^U-Boot 20" | cut -f 2 -d\ )
+      craftctl set version="${VER}"
       craftctl set grade="devel"
-    build-packages:
-      - bc
-      - bison
-      - flex
-      - libpython3-dev
-      - libssl-dev
-      - swig
-    prime:
-      - boot.sel
-      - uboot.conf
+    stage:
+      - u-boot.toc1
 
-  boot-image:
-    after:
-      - u-boot
-      - opensbi
+  # File required by Ubuntu Core
+  u-boot-conf:
     plugin: nil
     override-build: |
-      cat > toc1.cfg << EOF
-      [opensbi]
-      file = ${CRAFT_PART_BUILD}/../../opensbi/install/fw_dynamic.bin
-      addr = 0x40000000
-      [dtb]
-      file = ${CRAFT_PART_BUILD}/../../u-boot/install/u-boot.dtb
-      addr = 0x44000000
-      [u-boot]
-      file = ${CRAFT_PART_BUILD}/../../u-boot/install/u-boot.bin
-      addr = 0x4a000000
-      EOF
+      touch ${CRAFT_PART_INSTALL}/uboot.conf
 
-      ${CRAFT_PART_BUILD}/../../u-boot/build/tools/mkimage \
-        -T sunxi_toc1 -d toc1.cfg ${CRAFT_PART_INSTALL}/u-boot.toc1
-    prime:
-      - u-boot.toc1
+  # File required by Ubuntu Core
+  boot-sel:
+    plugin: nil
+    build-packages:
+      - u-boot-tools
+    override-build: |
+      mkenvimage -r -s 4096 -o ${CRAFT_PART_INSTALL}/boot.sel - < /dev/null
 
   boot-scr:
     plugin: nil
@@ -82,48 +58,14 @@ parts:
       - sed
       - u-boot-tools
 
-  opensbi:
-    plugin: make
-    source: https://github.com/smaeul/opensbi.git
-    source-type: git
-    source-branch: d1-wip
-    source-depth: 1
-    build-environment:
-      - PATH: "/usr/lib/ccache:${PATH}"
-      - FW_PIC: "y"
-      - BUILD_INFO: "y"
-      - PLATFORM: "generic"
-    make-parameters:
-      - CROSS_COMPILE="${CRAFT_ARCH_TRIPLET}-"
-    override-build: |
-      craftctl default
-      cp ${CRAFT_PART_BUILD}/build/platform/generic/firmware/fw_dynamic.bin ${CRAFT_PART_INSTALL}/
-    prime:
-      - -fw_dynamic.bin
-
-  spl:
+  boot0:
     plugin: nil
-    source: https://github.com/smaeul/sun20i_d1_spl.git
-    source-type: git
-    source-branch: mainline
-    source-depth: 1
-    build-environment:
-      - PATH: "/usr/lib/ccache:${PATH}"
-    override-build: |
-      make CROSS_COMPILE="${CRAFT_ARCH_TRIPLET}-" p=sun20iw1p1 mmc
-      cp ${CRAFT_PART_BUILD}/nboot/boot0_sdcard_sun20iw1p1.bin ${CRAFT_PART_INSTALL}/
-
-  overlays:
-    plugin: nil
-    source: overlays
-    override-build: |
-      for f in $(ls ${CRAFT_PART_SRC}/*.dts); do
-        dtc -@ -I dts -O dtb -o ${CRAFT_PART_INSTALL}/$(basename $f | cut -f1 -d.).dtbo $f
-      done
+    stage-packages:
+      - nezha-boot0
     organize:
-      "*.dtbo": overlays/
-    build-packages:
-      - device-tree-compiler
+      usr/lib/u-boot/nezha/boot0_sdcard_sun20iw1p1.bin: boot0_sdcard_sun20iw1p1.bin
+    stage:
+      - boot0_sdcard_sun20iw1p1.bin
 
 build-packages:
   - build-essential

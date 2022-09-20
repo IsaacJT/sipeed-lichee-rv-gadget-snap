@@ -8,12 +8,7 @@ setenv seedpart 1
 setenv bootpart 2
 
 setenv kernel_name kernel.img
-setenv ramdisk_name initrd.img
-setenv kernel_addr_r  0x40040000
-setenv dtbo_addr_r    0x4e000000
-setenv ramdisk_addr_r 0x50000000
-
-setenv overlays "uart2"
+setenv kernel_addr_r 0x50000000
 
 echo "Loading ubuntu-seed configuration..."
 load ${devtype} ${devnum}:${seedpart} ${scriptaddr} uboot/ubuntu/boot.sel
@@ -46,21 +41,5 @@ setenv bootargs "${console} earlycon rw snapd_recovery_mode=${snapd_recovery_mod
 
 echo "Loading ${prefix}${kernel_name}..."
 load ${devtype} ${devnum}:${kernel_bootpart} ${kernel_addr_r} "${prefix}${kernel_name}"
-echo "Loading ${prefix}${ramdisk_name}..."
-load ${devtype} ${devnum}:${kernel_bootpart} ${ramdisk_addr_r} "${prefix}${ramdisk_name}"
-setenv ramdisk_size $filesize
 
-fdt addr ${fdtcontroladdr}
-
-for dtbo in ${overlays}; do
-    setenv dtbo_file "overlays/${dtbo}.dtbo"
-    if test -e ${devtype} ${devnum}:${seedpart} "${dtbo_file}"; then
-        echo "Loading device tree overlay ${dtbo_file}..."
-        load ${devtype} ${devnum}:${seedpart} ${dtbo_addr_r} "${dtbo_file}"
-        fdt apply ${dtbo_addr_r}
-    else
-        echo "Skipping device tree overlay ${dtbo_file} (not found)"
-    fi
-done
-
-booti ${kernel_addr_r} ${ramdisk_addr_r}:${ramdisk_size} ${fdtcontroladdr}
+bootm ${kernel_addr_r}
