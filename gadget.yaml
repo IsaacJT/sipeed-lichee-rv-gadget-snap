@@ -31,7 +31,7 @@ volumes:
         content:
           - source: boot.scr
             target: /
-          - source: overlays
+          - source: cloud.conf
             target: /
         update:
           edition: 1
@@ -43,6 +43,8 @@ volumes:
         content:
           - source: boot.sel
             target: uboot/ubuntu/boot.sel
+          - source: cloud.conf
+            target: /
       - name: ubuntu-save
         role: system-save
         filesystem: ext4

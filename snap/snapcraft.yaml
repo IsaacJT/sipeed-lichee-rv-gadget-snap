@@ -67,6 +67,10 @@ parts:
     stage:
       - boot0_sdcard_sun20iw1p1.bin
 
+  cloud-init:
+    plugin: dump
+    source: cloud-init
+
 build-packages:
   - build-essential
   - ccache
