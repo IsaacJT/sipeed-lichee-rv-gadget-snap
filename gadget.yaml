@@ -59,3 +59,6 @@ volumes:
 defaults:
   system:
     service.console-conf.disable: true
+    watchdog:
+      runtime-timeout: 16s
+      shutdown-timeout: 1m
