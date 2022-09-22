@@ -29,10 +29,10 @@ parts:
     build-environment:
       - PATH: "/usr/lib/ccache:${PATH}"
     override-build: |
-      make ARCH="riscv" CROSS_COMPILE="${SNAPCRAFT_ARCH_TRIPLET}-" lichee_rv_defconfig
+      make ARCH="riscv" CROSS_COMPILE="riscv64-linux-gnu-" lichee_rv_defconfig
       sed -i 's/CONFIG_DEFAULT_DEVICE_TREE="sun20i-d1-lichee-rv"/CONFIG_DEFAULT_DEVICE_TREE="sun20i-d1-lichee-rv-dock"/' ${SNAPCRAFT_PART_BUILD}/.config
       sed -i 's/# CONFIG_OF_LIBFDT_OVERLAY is not set/CONFIG_OF_LIBFDT_OVERLAY=y/' ${SNAPCRAFT_PART_BUILD}/.config
-      make ARCH="riscv" CROSS_COMPILE="${SNAPCRAFT_ARCH_TRIPLET}-" -j$(nproc)
+      make ARCH="riscv" CROSS_COMPILE="riscv64-linux-gnu-" -j$(nproc)
       tools/mkenvimage -r -s 4096 -o ${SNAPCRAFT_PART_INSTALL}/boot.sel - < /dev/null
       touch ${SNAPCRAFT_PART_INSTALL}/uboot.conf
       cp u-boot.dtb u-boot.bin ${SNAPCRAFT_PART_INSTALL}/
@@ -94,7 +94,7 @@ parts:
       - BUILD_INFO: "y"
       - PLATFORM: "generic"
     make-parameters:
-      - CROSS_COMPILE="${SNAPCRAFT_ARCH_TRIPLET}-"
+      - CROSS_COMPILE="riscv64-linux-gnu-"
     override-build: |
       snapcraftctl build
       cp ${SNAPCRAFT_PART_BUILD}/build/platform/generic/firmware/fw_dynamic.bin ${SNAPCRAFT_PART_INSTALL}/
@@ -110,7 +110,7 @@ parts:
     build-environment:
       - PATH: "/usr/lib/ccache:${PATH}"
     override-build: |
-      make CROSS_COMPILE="${SNAPCRAFT_ARCH_TRIPLET}-" p=sun20iw1p1 mmc
+      make CROSS_COMPILE="riscv64-linux-gnu-" p=sun20iw1p1 mmc
       cp ${SNAPCRAFT_PART_BUILD}/nboot/boot0_sdcard_sun20iw1p1.bin ${SNAPCRAFT_PART_INSTALL}/
 
   overlays:
@@ -131,4 +131,4 @@ build-packages:
   - on riscv64:
     - gcc
   - else:
-    - gcc-${SNAPCRAFT_ARCH_TRIPLET}
+    - gcc-riscv64-linux-gnu
