@@ -31,7 +31,7 @@ then
         setenv prefix "uboot/ubuntu/${snap_kernel}/"
     fi
 else
-    # Prefix within the seed partiion to the boot files
+    # Prefix within the seed partition to the boot files
     setenv prefix "systems/${snapd_recovery_system}/kernel/"
     setenv kernel_bootpart "${seedpart}"
 fi
