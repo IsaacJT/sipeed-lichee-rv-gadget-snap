@@ -27,7 +27,7 @@ volumes:
         # Set to "UEFI ESP" partition type so that U-Boot detects it as the
         # boot partition
         type: C12A7328-F81F-11D2-BA4B-00A0C93EC93B
-        size: 1500M
+        size: 1000M
         content:
           - source: boot.scr
             target: /
@@ -54,7 +54,7 @@ volumes:
         role: system-data
         filesystem: ext4
         type: 0FC63DAF-8483-4772-8E79-3D69D8477DE4
-        size: 3G
+        size: 2G
 
 defaults:
   system:
