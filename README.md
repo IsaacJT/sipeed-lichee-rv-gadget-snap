@@ -11,4 +11,5 @@ On Ubuntu 22.04:
 ## Related repositories
 
 Kernel snap: https://github.com/IsaacJT/sipeed-lichee-rv-kernel-snap
+
 Ubuntu Core model: https://github.com/IsaacJT/sipeed-lichee-rv-model
