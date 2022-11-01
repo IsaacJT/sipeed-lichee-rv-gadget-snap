@@ -66,11 +66,3 @@ parts:
       usr/lib/u-boot/nezha/boot0_sdcard_sun20iw1p1.bin: boot0_sdcard_sun20iw1p1.bin
     stage:
       - boot0_sdcard_sun20iw1p1.bin
-
-build-packages:
-  - build-essential
-  - ccache
-  - on riscv64:
-    - gcc
-  - else:
-    - gcc-${CRAFT_ARCH_TRIPLET}
