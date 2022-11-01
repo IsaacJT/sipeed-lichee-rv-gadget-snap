@@ -9,14 +9,13 @@ description: |
 type: gadget
 base: core22
 assumes: [kernel-assets]
-adopt-info: u-boot
 architectures:
   - build-on:
       - amd64
       - arm64
       - riscv64
     build-for: riscv64
-
+version: git
 confinement: strict
 compression: lzo
 
@@ -27,11 +26,6 @@ parts:
       - u-boot-nezha
     organize:
       usr/lib/u-boot/nezha/u-boot.toc1: u-boot.toc1
-    override-stage: |
-      craftctl default
-      VER=$(strings ${CRAFT_PART_INSTALL}/u-boot.toc1 | grep -E "^U-Boot 20" | cut -f 2 -d\ )
-      craftctl set version="${VER}"
-      craftctl set grade="devel"
     stage:
       - u-boot.toc1
 
