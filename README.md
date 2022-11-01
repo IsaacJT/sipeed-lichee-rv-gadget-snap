@@ -8,3 +8,7 @@ On Ubuntu 22.04:
 
     sudo snapcraft --destructive-mode
     
+## Related repositories
+
+Kernel snap: https://github.com/IsaacJT/sipeed-lichee-rv-kernel-snap
+Ubuntu Core model: https://github.com/IsaacJT/sipeed-lichee-rv-model
